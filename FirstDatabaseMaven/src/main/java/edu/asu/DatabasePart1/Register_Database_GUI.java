@@ -18,9 +18,9 @@ public class Register_Database_GUI extends Application {
         dbHelper.connectToDatabase();  // Connect to the database
 
         // Create labels and input fields
-        Label emailLabel = new Label("Email:");
-        TextField emailField = new TextField();
-        emailField.setPrefWidth(100);
+        Label usernameLabel = new Label("Username:");
+        TextField usernameField = new TextField();
+        usernameField.setPrefWidth(100);
 
         Label passwordLabel = new Label("Password:");
         PasswordField passwordField = new PasswordField();
@@ -53,12 +53,12 @@ public class Register_Database_GUI extends Application {
 
         // Handle button click for registration
         registerButton.setOnAction(e -> {
-            String email = emailField.getText();
+            String username = usernameField.getText();
             String password = passwordField.getText();
             String confirmPassword = confirmPasswordField.getText();
             String role = roleComboBox.getValue();  // Get selected role
 
-            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || role == null) {
+            if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || role == null) {
                 System.out.println("All fields are required.");
                 return;
             }
@@ -70,10 +70,10 @@ public class Register_Database_GUI extends Application {
             }
 
             try {
-                if (dbHelper.doesUserExist(email)) {
+                if (dbHelper.doesUserExist(username)) {
                     System.out.println("User already exists.");
                 } else {
-                    dbHelper.register(email, password, role);
+                    dbHelper.register(username, password, role);
                     System.out.println("User registered successfully!");
 
                     primaryStage.close();
@@ -94,7 +94,7 @@ public class Register_Database_GUI extends Application {
         });
         
         // Layout setup
-        VBox vbox = new VBox(10, emailLabel, emailField, passwordLabel, passwordField, confirmPasswordLabel, confirmPasswordField, roleLabel, roleComboBox, registerButton, closeButton);
+        VBox vbox = new VBox(10, usernameLabel, usernameField, passwordLabel, passwordField, confirmPasswordLabel, confirmPasswordField, roleLabel, roleComboBox, registerButton, closeButton);
         vbox.setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(vbox, 400, 400);
