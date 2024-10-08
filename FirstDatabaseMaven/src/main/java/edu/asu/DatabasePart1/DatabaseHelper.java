@@ -37,8 +37,13 @@ class DatabaseHelper {
 		String userTable = "CREATE TABLE IF NOT EXISTS cse360users ("
 				+ "id INT AUTO_INCREMENT PRIMARY KEY, "
 				+ "email VARCHAR(255) UNIQUE, "
+				+ "username VARCHAR(255) UNIQUE, "
 				+ "password VARCHAR(255), "
-				+ "role VARCHAR(20))";
+				+ "role VARCHAR(20), "
+				+ "first_name VARCHAR(255), "
+				+ "middle_name VARCHAR(255), "
+				+ "last_name VARCHAR(255), "
+				+ "preferred_name VARCHAR(255))";
 		statement.execute(userTable);
 	}
 
@@ -53,20 +58,32 @@ class DatabaseHelper {
 		return true;
 	}
 
-	public void register(String email, String password, String role) throws SQLException {
-		String insertUser = "INSERT INTO cse360users (email, password, role) VALUES (?, ?, ?)";
+	public void register(String username, String password, String role) throws SQLException {
+		String insertUser = "INSERT INTO cse360users (username, password, role) VALUES (?, ?, ?)";
 		try (PreparedStatement pstmt = connection.prepareStatement(insertUser)) {
-			pstmt.setString(1, email);
+			pstmt.setString(1, username);
 			pstmt.setString(2, password);
 			pstmt.setString(3, role);
 			pstmt.executeUpdate();
 		}
 	}
 
-	public boolean login(String email, String password, String role) throws SQLException {
-		String query = "SELECT * FROM cse360users WHERE email = ? AND password = ? AND role = ?";
-		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	public void setUpAccount(String email, String first_name, String middle_name, String last_name, String preferred_name) throws SQLException {
+		String insertUser = "INSERT INTO cse360users (email, first_name, middle_name, last_name, preferred_name) VALUES (?, ?, ?, ?, ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(insertUser)) {
 			pstmt.setString(1, email);
+			pstmt.setString(2, first_name);
+			pstmt.setString(3, middle_name);
+			pstmt.setString(4, last_name);
+			pstmt.setString(5, preferred_name);
+			pstmt.executeUpdate();
+		}
+	}
+
+	public boolean login(String username, String password, String role) throws SQLException {
+		String query = "SELECT * FROM cse360users WHERE username = ? AND password = ? AND role = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, username);
 			pstmt.setString(2, password);
 			pstmt.setString(3, role);
 			try (ResultSet rs = pstmt.executeQuery()) {
@@ -75,11 +92,11 @@ class DatabaseHelper {
 		}
 	}
 	
-	public boolean doesUserExist(String email) {
-	    String query = "SELECT COUNT(*) FROM cse360users WHERE email = ?";
+	public boolean doesUserExist(String username) {
+	    String query = "SELECT COUNT(*) FROM cse360users WHERE username = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 	        
-	        pstmt.setString(1, email);
+	        pstmt.setString(1, username);
 	        ResultSet rs = pstmt.executeQuery();
 	        
 	        if (rs.next()) {
@@ -100,15 +117,15 @@ class DatabaseHelper {
 		while(rs.next()) { 
 			// Retrieve by column name 
 			int id  = rs.getInt("id"); 
-			String  email = rs.getString("email"); 
+			String  username = rs.getString("username"); 
 			String password = rs.getString("password"); 
 			String role = rs.getString("role");  
 
 			// Display values 
 			System.out.print("ID: " + id); 
-			System.out.print(", Age: " + email); 
-			System.out.print(", First: " + password); 
-			System.out.println(", Last: " + role); 
+			System.out.print(", Username: " + username); 
+			System.out.print(", Password: " + password); 
+			System.out.println(", Role: " + role); 
 		} 
 	}
 	
@@ -120,15 +137,15 @@ class DatabaseHelper {
 		while(rs.next()) { 
 			// Retrieve by column name 
 			int id  = rs.getInt("id"); 
-			String  email = rs.getString("email"); 
+			String  username = rs.getString("username"); 
 			String password = rs.getString("password"); 
 			String role = rs.getString("role");  
 
 			// Display values 
 			System.out.print("ID: " + id); 
-			System.out.print(", Age: " + email); 
-			System.out.print(", First: " + password); 
-			System.out.println(", Last: " + role); 
+			System.out.print(", Username: " + username); 
+			System.out.print(", Password: " + password); 
+			System.out.println(", Role: " + role); 
 		} 
 	}
 
