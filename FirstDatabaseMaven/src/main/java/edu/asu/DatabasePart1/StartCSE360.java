@@ -50,41 +50,41 @@ public class StartCSE360 {
 
 	private static void setupAdministrator() throws SQLException {
 		System.out.println("Setting up the Administrator access.");
-		System.out.print("Enter Admin Email: ");
-		String email = scanner.nextLine();
+		System.out.print("Enter Admin Username: ");
+		String username = scanner.nextLine();
 		System.out.print("Enter Admin Password: ");
 		String password = scanner.nextLine();
-		databaseHelper.register(email, password, "admin");
+		databaseHelper.register(username, password, "admin");
 		System.out.println("Administrator setup completed.");
 
 	}
 
 	private static void userFlow() throws SQLException {
-		String email = null;
+		String username = null;
 		String password = null;
 		System.out.println("user flow");
 		System.out.print("What would you like to do 1.Register 2.Login  ");
 		String choice = scanner.nextLine();
 		switch(choice) {
 		case "1": 
-			System.out.print("Enter User Email: ");
-			email = scanner.nextLine();
+			System.out.print("Enter User Username: ");
+			username = scanner.nextLine();
 			System.out.print("Enter User Password: ");
 			password = scanner.nextLine(); 
 			// Check if user already exists in the database
-		    if (!databaseHelper.doesUserExist(email)) {
-		        databaseHelper.register(email, password, "user");
+		    if (!databaseHelper.doesUserExist(username)) {
+		        databaseHelper.register(username, password, "user");
 		        System.out.println("User setup completed.");
 		    } else {
 		        System.out.println("User already exists.");
 		    }
 			break;
 		case "2":
-			System.out.print("Enter User Email: ");
-			email = scanner.nextLine();
+			System.out.print("Enter User Username: ");
+			username = scanner.nextLine();
 			System.out.print("Enter User Password: ");
 			password = scanner.nextLine();
-			if (databaseHelper.login(email, password, "user")) {
+			if (databaseHelper.login(username, password, "user")) {
 				System.out.println("User login successful.");
 //				databaseHelper.displayUsers();
 
@@ -97,11 +97,11 @@ public class StartCSE360 {
 
 	private static void adminFlow() throws SQLException {
 		System.out.println("admin flow");
-		System.out.print("Enter Admin Email: ");
-		String email = scanner.nextLine();
+		System.out.print("Enter Admin Username: ");
+		String username = scanner.nextLine();
 		System.out.print("Enter Admin Password: ");
 		String password = scanner.nextLine();
-		if (databaseHelper.login(email, password, "admin")) {
+		if (databaseHelper.login(username, password, "admin")) {
 			System.out.println("Admin login successful.");
 			databaseHelper.displayUsersByAdmin();
 
