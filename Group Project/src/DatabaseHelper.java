@@ -145,8 +145,8 @@ class DatabaseHelper {
 			System.out.print("ID: " + id); 
 			System.out.print(", Username: " + username); 
 			System.out.print(", Password: " + password); 
-			System.out.println(", Role: " + role); 
-		} 
+			System.out.println(", Role: " + role);
+		}
 	}
 
 
@@ -162,5 +162,32 @@ class DatabaseHelper {
 			se.printStackTrace(); 
 		} 
 	}
+	//ADDED
+	// Method to check if the password matches the one stored for the username
+    public boolean checkPassword(String username, String password) throws SQLException {
+        // SQL query to get the stored password for the given username
+        String query = "SELECT password FROM users WHERE username = ?";
+
+        // Prepare statement to prevent SQL injection
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, username);  // Set the username in the query
+
+            // Execute query and retrieve result
+            ResultSet resultSet = statement.executeQuery();
+
+            // Check if user exists
+            if (resultSet.next()) {
+                // Get the stored password from the result set
+                String storedPassword = resultSet.getString("password");
+
+                // Check if the entered password matches the stored password
+                return storedPassword.equals(password);
+            } else {
+                // If no user is found, return false
+                return false;
+            }
+        }
+    }
+	
 
 }
