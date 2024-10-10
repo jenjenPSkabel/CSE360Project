@@ -222,7 +222,7 @@ class DatabaseHelper {
 	
 	public void deleteUser(String username) throws SQLException{
 		String deleteQuery = "DELETE FROM cse360users WHERE username = ?";
-		try(PreparedStatement statement = connction.prepareStatement(deleteQuery)){
+		try(PreparedStatement statement = connection.prepareStatement(deleteQuery)){
 			statement.setString(1, username);
 			statement.executeUpdate();
 		}
