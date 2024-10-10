@@ -43,6 +43,10 @@ public class Login_Database_GUI extends Application {
                     // Show success popup
                     showSuccessPopup();
 
+                    // Pass the username to the SetUpAccount_Database_GUI
+                    SetUpAccount_Database_GUI setUpAccountGUI = new SetUpAccount_Database_GUI(username);
+                    setUpAccountGUI.start(new Stage());  // Open the SetUpAccount window
+
                     primaryStage.close();  // Close the window on successful login
                 } else {
                     System.out.println("Invalid username or password.");
