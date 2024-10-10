@@ -40,14 +40,21 @@ public class Login_Database_GUI extends Application {
                 if (dbHelper.doesUserExist(username) && dbHelper.checkPassword(username, password)) {
                     System.out.println("Login successful!");
 
-                    // Show success popup
-                    showSuccessPopup();
-
-                    // Pass the username to the SetUpAccount_Database_GUI
-                    SetUpAccount_Database_GUI setUpAccountGUI = new SetUpAccount_Database_GUI(username);
-                    setUpAccountGUI.start(new Stage());  // Open the SetUpAccount window
-
-                    primaryStage.close();  // Close the window on successful login
+                    // Check if the user's profile is complete
+                    if (dbHelper.isProfileComplete(username)) {
+                        System.out.println("Profile is complete!");
+        
+                        // Direct them to the main menu or another page
+                        // mainMenu.start(new Stage());
+                        primaryStage.close();  // Close the login window
+                    } else {
+                        System.out.println("Profile is incomplete! Redirecting to Set Up Account.");
+        
+                        // If profile is incomplete, direct them to SetUpAccount_Database_GUI
+                        SetUpAccount_Database_GUI setUpAccountGUI = new SetUpAccount_Database_GUI(username);
+                        setUpAccountGUI.start(new Stage());  // Open the SetUpAccount window
+                        primaryStage.close();  // Close the login window
+                    }
                 } else {
                     System.out.println("Invalid username or password.");
                     showErrorPopup();
