@@ -69,15 +69,16 @@ class DatabaseHelper {
 		}
 	}
 
-	public void setUpAccount(String email, String first_name, String middle_name, String last_name, String preferred_name) throws SQLException {
-		String insertUser = "INSERT INTO cse360users (email, first_name, middle_name, last_name, preferred_name) VALUES (?, ?, ?, ?, ?)";
-		try (PreparedStatement pstmt = connection.prepareStatement(insertUser)) {
-			pstmt.setString(1, email);
-			pstmt.setString(2, first_name);
-			pstmt.setString(3, middle_name);
-			pstmt.setString(4, last_name);
-			pstmt.setString(5, preferred_name);
-			pstmt.executeUpdate();
+	public void setUpAccount(String username, String email, String firstName, String middleName, String lastName, String preferredName) throws SQLException {
+        String updateQuery = "UPDATE cse360users SET email = ?, first_name = ?, middle_name = ?, last_name = ?, preferred_name = ? WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+            pstmt.setString(1, email);
+            pstmt.setString(2, firstName);
+            pstmt.setString(3, middleName);
+            pstmt.setString(4, lastName);
+            pstmt.setString(5, preferredName);
+            pstmt.setString(6, username);  // Use the username to find the correct row
+            pstmt.executeUpdate();
 		}
 	}
 
