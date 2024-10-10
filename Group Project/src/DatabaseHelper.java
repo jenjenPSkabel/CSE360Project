@@ -43,7 +43,8 @@ class DatabaseHelper {
 				+ "first_name VARCHAR(255), "
 				+ "middle_name VARCHAR(255), "
 				+ "last_name VARCHAR(255), "
-				+ "preferred_name VARCHAR(255))";
+				+ "preferred_name VARCHAR(255), "
+				+ "oneTimePassword VARCHAR(255))";
 		statement.execute(userTable);
 	}
 
@@ -188,6 +189,17 @@ class DatabaseHelper {
             }
         }
     }
+	public void inviteUser(String email)throws SQLException {
+		String createUser = "INSERT INTO cse360users (email, oneTimePassword) VALUES = (?, ?)";
+		String otp = String.valueOf(100000000 + (int)(Math.random() * 999999999);
+		try(PreparedStatement statement = connection.prepareStatement(createUser)){
+			statement.setString(1, email);
+			statement.setString(2, otp);
+			statement.executeUpdate();
+		}
+	}
+
+	
 	
 
 }
