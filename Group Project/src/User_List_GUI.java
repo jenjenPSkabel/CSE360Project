@@ -96,33 +96,3 @@ public void start(Stage stage) {
 }
 }
 
-
-public class User {
-    private String userName;
-    private String prefName;
-    private String firstName;
-    private String middleName;
-    private String lastName;
-    private String email;
-    private String role;
-
-    // Constructor
-    public User(String userName, String prefName, String firstName, String middleName, String lastName, String email, String role) {
-        this.userName = userName;
-        this.prefName = prefName;
-        this.firstName = firstName;
-        this.middleName = middleName;
-        this.lastName = lastName;
-        this.email = email;
-        this.role = role;
-    }
-
-    // Getters
-    public String getUserName() { return userName; }
-    public String getPrefName() { return prefName; }
-    public String getFirstName() { return firstName; }
-    public String getMiddleName() { return middleName; }
-    public String getLastName() { return lastName; }
-    public String getEmail() { return email; }
-    public String getRole() { return role; }
-}
