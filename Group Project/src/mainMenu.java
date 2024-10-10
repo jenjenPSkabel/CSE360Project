@@ -8,6 +8,12 @@ import javafx.application.Platform;
 
 public class mainMenu extends Application {
 
+	
+	
+	// This variable would store the role of the logged-in user
+    private String currentUserRole = null;
+    
+    
     @Override
     public void start(Stage primaryStage) {
         // Create buttons for Login and Register
@@ -25,12 +31,28 @@ public class mainMenu extends Application {
             }
         });
 
-        // Handle button click for "Login" (you can implement this similarly to Register)
+     // Handle button click for "Login"
         loginButton.setOnAction(e -> {
-            // Launch the Login GUI (which needs to be implemented)
-            Login_Database_GUI loginGUI = new Login_Database_GUI();  // You will need to create this class
+            // Create a new instance of the login GUI
+            Login_Database_GUI loginGUI = new Login_Database_GUI();
             try {
                 loginGUI.start(new Stage());  // Open the Login GUI in a new window
+
+                // After login window is closed, get the user's role
+                String currentUserRole = loginGUI.getRole();
+
+                // Check the role and navigate accordingly
+                if ("Admin".equals(currentUserRole)) {
+                    adminHomepage adminHomePage = new adminHomepage();
+                    try {
+                        adminHomePage.start(new Stage());  // Open the Admin HomePage
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                } else {
+                    // Handle non-admin users or other logic for different roles
+                    System.out.println("User logged in with role: " + currentUserRole);
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -58,3 +80,5 @@ public class mainMenu extends Application {
         launch(args);
     }
 }
+
+
