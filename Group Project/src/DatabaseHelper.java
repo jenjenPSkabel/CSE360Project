@@ -131,24 +131,25 @@ class DatabaseHelper {
 	    return false; // If an error occurs, assume user doesn't exist
 	}
 
-	public void displayUsersByAdmin() throws SQLException{
+	public ArrayList<String[]> displayUsersByAdmin() throws SQLException{
 		String sql = "SELECT * FROM cse360users"; 
 		Statement stmt = connection.createStatement();
 		ResultSet rs = stmt.executeQuery(sql); 
-
+		ArrayList<String[]> userList = new ArrayList<String[]>();
+		String[] userInfo = new String[7];
 		while(rs.next()) { 
 			// Retrieve by column name 
-			int id  = rs.getInt("id"); 
-			String  username = rs.getString("username"); 
-			String password = rs.getString("password"); 
-			String role = rs.getString("role");  
-
-			// Display values 
-			System.out.print("ID: " + id); 
-			System.out.print(", Username: " + username); 
-			System.out.print(", Password: " + password); 
-			System.out.println(", Role: " + role); 
+			userInfo[0] = rs.getString("username"); 
+			userInfo[1] = rs.getString("preffered_name"); 
+			userInfo[2] = rs.getString("first_name");
+			userInfo[3] = rs.getString("middle_name");
+			userInfo[4] = rs.getString("last_name");
+			userInfo[5] = rs.getString("email");
+			userInfo[6] = rs.getString("role");
+			userList.add(userInfo);
 		} 
+
+		return userList;
 	}
 	
 	public void displayUsersByUser() throws SQLException{
