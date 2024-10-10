@@ -82,6 +82,26 @@ class DatabaseHelper {
 		}
 	}
 
+	// Method to check if the user's profile is complete (email, first name, last name are not null)
+    public boolean isProfileComplete(String username) throws SQLException {
+        String query = "SELECT email, first_name, last_name FROM cse360users WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, username);  // Use the username to find the row
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                // Check if email, first name, or last name are null or empty
+                String email = rs.getString("email");
+                String firstName = rs.getString("first_name");
+                String lastName = rs.getString("last_name");
+
+                return email != null && !email.isEmpty() && firstName != null && !firstName.isEmpty() && lastName != null && !lastName.isEmpty();
+            } else {
+                return false;  // User doesn't exist (shouldn't happen because login already checks)
+            }
+        }
+    }
+
 	public boolean login(String username, String password, String role) throws SQLException {
 		String query = "SELECT * FROM cse360users WHERE username = ? AND password = ? AND role = ?";
 		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
