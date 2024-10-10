@@ -1,5 +1,7 @@
 
 
+import java.sql.SQLException;
+
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,7 +12,6 @@ import javafx.scene.control.Alert.AlertType;
 
 public class Register_Database_GUI extends Application {
 
-    // Create the DatabaseHelper instance to manage database interactions
     private DatabaseHelper dbHelper = new DatabaseHelper();
 
     @Override
@@ -30,23 +31,16 @@ public class Register_Database_GUI extends Application {
         PasswordField confirmPasswordField = new PasswordField();
         confirmPasswordField.setPrefWidth(100);
 
-        Label roleLabel = new Label("Role:");
+        Label inviteCodeLabel = new Label("Invite Code:");
+        TextField inviteCodeField = new TextField();
+        inviteCodeField.setPrefWidth(100);
         
-        // Use ComboBox for role selection
-        ComboBox<String> roleComboBox = new ComboBox<>();
-        
-        // Check if the database is empty
-        if (dbHelper.isDatabaseEmpty()) {
-            // First user must be Admin
-            roleComboBox.getItems().add("Admin");
-            roleComboBox.setValue("Admin");  // Automatically select "Admin"
-            roleComboBox.setDisable(true);  // Disable dropdown to prevent changing
-        } else {
-            // For subsequent users, show all roles
-            roleComboBox.getItems().addAll("Admin", "Instructor", "Student");
+        // Check if this is the first user (admin)
+        boolean isFirstUser = dbHelper.isDatabaseEmpty();
+        if (isFirstUser) {
+            inviteCodeField.setDisable(true);  // Disable invite code field for the first user
+            inviteCodeField.setText("N/A");    // Set a placeholder text for the first user
         }
-        
-        roleComboBox.setPrefWidth(100);
 
         Button registerButton = new Button("Register");
         Button closeButton = new Button("Close");
@@ -56,9 +50,11 @@ public class Register_Database_GUI extends Application {
             String username = usernameField.getText();
             String password = passwordField.getText();
             String confirmPassword = confirmPasswordField.getText();
-            String role = roleComboBox.getValue();  // Get selected role
 
-            if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || role == null) {
+            // Now get the invite code here when registering
+            String inviteCode = inviteCodeField.getText().trim();  // Get the invite code when clicked
+
+            if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 System.out.println("All fields are required.");
                 return;
             }
@@ -69,59 +65,70 @@ public class Register_Database_GUI extends Application {
                 return;
             }
 
+            String role = null;
             try {
+                if (dbHelper.isDatabaseEmpty()) {
+                    // First user, assign Admin role
+                    role = "Admin";
+                    System.out.println("First user. Assigning role: Admin");
+                } else {
+                    // Validate the invite code by querying the database
+                    role = dbHelper.getRoleForInviteCode(inviteCode);  // Check if invite code exists and get role
+                    if (role == null) {
+                        System.out.println("Invalid invite code.");
+                        return;
+                    }
+                }
+
+                // Check if user already exists
                 if (dbHelper.doesUserExist(username)) {
                     System.out.println("User already exists.");
                 } else {
+                    // Register the user
                     dbHelper.register(username, password, role);
-                    System.out.println("User registered successfully!");
-
+                    System.out.println("User registered successfully as a " + role + "!");
+                    
+                    // Delete the invite code from the invite_codes table
+                    if (!isFirstUser) {
+                        dbHelper.deleteInviteCode(inviteCode);
+                    }
+                    
                     primaryStage.close();
-                    // Display the popup dialog
-                    showSuccessPopup(role);
-
-                    // Hide the Register button and show the Close button
-                    registerButton.setVisible(false);
+                    showSuccessPopup(role);  // Show success popup
                 }
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         });
-        
+
         // Handle button click for closing the window
         closeButton.setOnAction(e -> {
             primaryStage.close();  // Close the window when the Close button is clicked
         });
-        
+
         // Layout setup
-        VBox vbox = new VBox(10, usernameLabel, usernameField, passwordLabel, passwordField, confirmPasswordLabel, confirmPasswordField, roleLabel, roleComboBox, registerButton, closeButton);
+        VBox vbox = new VBox(10, usernameLabel, usernameField, passwordLabel, passwordField, confirmPasswordLabel, confirmPasswordField, inviteCodeLabel, inviteCodeField, registerButton, closeButton);
         vbox.setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(vbox, 400, 400);
-
         primaryStage.setTitle("Register");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     // Method to show success pop-up when the user registers
     private void showSuccessPopup(String role) {
-        // Create an Alert dialog for success
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Registration Successful");
         alert.setHeaderText(null);  // No header
         alert.setContentText("User Successfully Registered as " + role);
-
-        // Add a "Great!" button
-        ButtonType buttonTypeGreat = new ButtonType("Great!", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(buttonTypeGreat);
-
-        // Show the alert and wait for user to click "Great!"
+        alert.getButtonTypes().setAll(new ButtonType("Great!", ButtonBar.ButtonData.OK_DONE));
         alert.showAndWait();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
-
 }
+
+

@@ -20,13 +20,17 @@ public class adminHomepage extends Application {
 
         // Create a button to create an invite code
         Button createInviteButton = new Button("Create Invite Code");
+        Button showUsersButton = new Button("Show Users");
         Button logoutButton = new Button("Logout");
 
         // Set button action to open a new invite code creation window
         createInviteButton.setOnAction(e -> openCreateInviteCodeWindow());
+        
+        // Set action for the Show Users button to open the User_List_GUI window
+        showUsersButton.setOnAction(e -> openUserListWindow());
 
         // Layout for the Admin home page
-        VBox vbox = new VBox(20, createInviteButton,logoutButton);
+        VBox vbox = new VBox(20, createInviteButton, showUsersButton, logoutButton);  // Add the new button here
         vbox.setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(vbox, 300, 200);
@@ -119,6 +123,17 @@ public class adminHomepage extends Application {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    
+ // Method to open the User List window
+    private void openUserListWindow() {
+        User_List_GUI userListGUI = new User_List_GUI();
+        Stage userListStage = new Stage();
+        try {
+            userListGUI.start(userListStage);  // Start the User_List_GUI window
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
