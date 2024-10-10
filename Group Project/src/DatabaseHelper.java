@@ -199,8 +199,23 @@ class DatabaseHelper {
 			statement.executeUpdate();
 		}
 	}
-
 	
+	public void deleteUser(String username) throws SQLException{
+		String deleteQuery = "DELETE FROM cse360users WHERE username = ?";
+		try(PreparedStatement statement = connction.prepareStatement(deleteQuery)){
+			statement.setString(1, username);
+			statement.executeUpdate();
+		}
+	}
+
+	public void editRoles(String username, String role)throws SQLException{
+		String editQuery = "UPDATE cse360users SET role = ? WHERE username = ?";
+		try(PreparedStatement statement = connection.prepareStatement(editQuery)){
+			statement.setString(1, role);
+			statement.setString(2, username);
+			statement.executeUpdate();
+		}
+	}
 	
 
 }
