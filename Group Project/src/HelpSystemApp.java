@@ -77,10 +77,10 @@ public class HelpSystemApp extends Application {
 
         Button saveButton = new Button("Save");
         saveButton.setOnAction(e -> {
-            Articles article = new Articles(100, 200, 500, 100, 1000, 200);
+            Articles article = new Articles(100, 200, 500, 100, 1000, 200, 200);
             article.setTitle(titleField.getText());
             article.setAuthors(authorField.getText());
-            article.setAbstractText(abstractField.getText());
+//            article.setAbstractText(abstractField.getText());
             articleList.add(article);
             dialog.close();
         });

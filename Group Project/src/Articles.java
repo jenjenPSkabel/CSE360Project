@@ -1,31 +1,57 @@
-import java.sql.*;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.Serializable;
 import java.util.ArrayList;
-
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
-public class Articles {
+
+public class Articles implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
+    
+
+    // Core fields for each article
+    
+    private static final Random RANDOM = new Random();
+    private long id;  // 7-digit unique identifier for each article
+    
+    private String header;  // Unique header or metadata about the article
     private char[] title;
     private char[] authors;
-    private char[] abstractText;
+    private char[] shortDescription;
     private char[] keywords;
     private char[] body;
     private char[] references;
+    private char[] otherInfo;  // Title or Description without sensitive information
 
-    public Articles(int titleLength, int authorsLength, int abstractLength, int keywordsLength, int bodyLength, int referencesLength) {
-        title = new char[titleLength];
+    public Articles(int titleLength, int authorsLength, int shortDescriptionLength, int keywordsLength, int bodyLength, int referencesLength, int infoLength) {
+    	this.id = generateRandomId();
+    	title = new char[titleLength];
         authors = new char[authorsLength];
-        abstractText = new char[abstractLength];
+        shortDescription = new char[shortDescriptionLength];
         keywords = new char[keywordsLength];
         body = new char[bodyLength];
         references = new char[referencesLength];
+        
+        otherInfo = new char[infoLength];
+        
+    }
+    
+    private static long generateRandomId() {
+        return 1_000_000 + RANDOM.nextInt(9_000_000);  // Range from 1,000,000 to 9,999,999
+    }
+
+    // Getter for id
+    public long getId() {
+        return id;
     }
 
     // Setters for each field
+    public void setHeader(String header) {
+        this.header = header;
+    }
+
     public void setTitle(String t) {
         Arrays.fill(title, ' ');
         System.arraycopy(t.toCharArray(), 0, title, 0, Math.min(t.length(), title.length));
@@ -36,9 +62,9 @@ public class Articles {
         System.arraycopy(a.toCharArray(), 0, authors, 0, Math.min(a.length(), authors.length));
     }
 
-    public void setAbstractText(String a) {
-        Arrays.fill(abstractText, ' ');
-        System.arraycopy(a.toCharArray(), 0, abstractText, 0, Math.min(a.length(), abstractText.length));
+    public void setShortDescription(String desc) {
+        Arrays.fill(shortDescription, ' ');
+        System.arraycopy(desc.toCharArray(), 0, shortDescription, 0, Math.min(desc.length(), shortDescription.length));
     }
 
     public void setKeywords(String k) {
@@ -56,7 +82,17 @@ public class Articles {
         System.arraycopy(r.toCharArray(), 0, references, 0, Math.min(r.length(), references.length));
     }
 
+    public void setOtherInfo(String t) {
+        Arrays.fill(otherInfo, ' ');
+        System.arraycopy(t.toCharArray(), 0, otherInfo, 0, Math.min(t.length(), otherInfo.length));
+    }
+
+
     // Getters
+    public String getHeader() {
+        return header;
+    }
+
     public String getTitle() {
         return new String(title).trim();
     }
@@ -65,8 +101,8 @@ public class Articles {
         return new String(authors).trim();
     }
 
-    public String getAbstractText() {
-        return new String(abstractText).trim();
+    public String getShortDescription() {
+        return new String(shortDescription).trim();
     }
 
     public String getKeywords() {
@@ -80,4 +116,10 @@ public class Articles {
     public String getReferences() {
         return new String(references).trim();
     }
+
+    public String getOtherInfo() {
+        return new String(otherInfo).trim();
+    }
+
+
 }

@@ -40,18 +40,54 @@ public class mainMenu extends Application {
 
                 // After login window is closed, get the user's role
                 String currentUserRole = loginGUI.getRole();
+                boolean currentUserIsMultirole = loginGUI.isMultirole();
 
                 // Check the role and navigate accordingly
-                if ("Admin".equals(currentUserRole)) {
+                
+                
+                
+                
+                System.out.print(currentUserIsMultirole);
+                if (currentUserIsMultirole) {
+                	multiRoleHomepage multiRoleHomepage = new multiRoleHomepage(currentUserRole);
+                    try {
+                        multiRoleHomepage.start(new Stage());  // Open the Multi-Role HomePage
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    System.out.println("User logged in with multi-role access.");
+                }
+                else if("Student".equals(currentUserRole)){
+                	studentHomepage studentHomepage = new studentHomepage();
+                    try {
+                        studentHomepage.start(new Stage());  // Open the student HomePage
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    System.out.println("User logged in with role: " + currentUserRole);
+                }
+                else if("Instructor".equals(currentUserRole)){
+                	instructorHomepage instructorHomepage = new instructorHomepage();
+                    try {
+                    	instructorHomepage.start(new Stage());  // Open the Instructor HomePage
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    System.out.println("User logged in with role: " + currentUserRole);
+                }
+               
+                else if("Admin".equals(currentUserRole)) {
                     adminHomepage adminHomePage = new adminHomepage();
                     try {
                         adminHomePage.start(new Stage());  // Open the Admin HomePage
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                } else {
-                    // Handle non-admin users or other logic for different roles
                     System.out.println("User logged in with role: " + currentUserRole);
+                }
+                else {
+                    // Handle non-admin users or other logic for different roles
+                    System.out.println("You need to login");
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
