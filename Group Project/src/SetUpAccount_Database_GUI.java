@@ -24,7 +24,7 @@ public class SetUpAccount_Database_GUI extends Application {
     public void start(Stage primaryStage) throws Exception {
         dbHelper.connectToDatabase();  // Connect to the database
 
-        // Create labels and input fields
+        // Create labels and input fieldsz
         Label emailLabel = new Label("Email:");
         TextField emailField = new TextField();
         emailField.setPrefWidth(100);

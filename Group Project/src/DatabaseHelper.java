@@ -53,13 +53,7 @@ class DatabaseHelper {
 				+ "oneTimePassword VARCHAR(255))";
 		statement.execute(userTable);
 		
-		
-		// Create invite_codes table to store email, OTP, and role
-        String inviteCodesTable = "CREATE TABLE IF NOT EXISTS invite_codes ("
-                + "invite_code VARCHAR(255) PRIMARY KEY, "
-                + "email VARCHAR(255) UNIQUE, "
-                + "role VARCHAR(50))";
-        statement.execute(inviteCodesTable);
+
 	}
 
 
@@ -82,6 +76,45 @@ class DatabaseHelper {
 			pstmt.executeUpdate();
 		}
 	}
+	public void registerWithEmail(String username, String password, String email, String role) throws SQLException {
+	    String checkEmailExistsQuery = "SELECT COUNT(*) FROM cse360users WHERE email = ?";
+	    String insertUserQuery = "INSERT INTO cse360users (username, password, email, role) VALUES (?, ?, ?, ?)";
+	    String updateUserQuery = "UPDATE cse360users SET username = ?, password = ?, role = ? WHERE email = ?";
+
+	    try (PreparedStatement checkStmt = connection.prepareStatement(checkEmailExistsQuery)) {
+	        
+	        // Step 1: Check if the email already exists
+	        checkStmt.setString(1, email);
+	        ResultSet rs = checkStmt.executeQuery();
+	        
+	        if (rs.next() && rs.getInt(1) > 0) {
+	            // Email exists, perform an update
+	            System.out.println("Email already exists, updating existing user.");
+	            try (PreparedStatement updateStmt = connection.prepareStatement(updateUserQuery)) {
+	                updateStmt.setString(1, username);
+	                updateStmt.setString(2, password);
+	                updateStmt.setString(3, role);
+	                updateStmt.setString(4, email);
+	                updateStmt.executeUpdate();
+	                System.out.println("Existing user updated with new username, password, and role.");
+	            }
+	        } else {
+	            // Email does not exist, perform an insert
+	            System.out.println("Email does not exist, inserting new user.");
+	            try (PreparedStatement insertStmt = connection.prepareStatement(insertUserQuery)) {
+	                insertStmt.setString(1, username);
+	                insertStmt.setString(2, password);
+	                insertStmt.setString(3, email);
+	                insertStmt.setString(4, role);
+	                insertStmt.executeUpdate();
+	                System.out.println("New user registered with email and role.");
+	            }
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
+	
 
 	public void setUpAccount(String username, String email, String firstName, String middleName, String lastName, String preferredName) throws SQLException {
         String updateQuery = "UPDATE cse360users SET email = ?, first_name = ?, middle_name = ?, last_name = ?, preferred_name = ? WHERE username = ?";
@@ -195,6 +228,27 @@ class DatabaseHelper {
 			System.out.println(", Role: " + role);
 		}
 	}
+	public String getRoleForInviteCode(String inviteCode) throws SQLException {
+	    String getRoleQuery = "SELECT role FROM cse360users WHERE oneTimePassword = ?";
+	    String role = null;
+
+	    try (PreparedStatement pstmt = connection.prepareStatement(getRoleQuery)) {
+	        pstmt.setString(1, inviteCode);
+	        ResultSet resultSet = pstmt.executeQuery();
+
+	        if (resultSet.next()) {
+	            role = resultSet.getString("role");
+	            System.out.println("Role for invite code (OTP) " + inviteCode + " is: " + role);
+	        } else {
+	            System.out.println("No role found for the provided invite code (OTP).");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return role;
+	}
+
 
 
 	public void closeConnection() {
@@ -259,21 +313,13 @@ class DatabaseHelper {
                 throw new IllegalArgumentException("Invalid invite code.");
         }
 
-        try (PreparedStatement userStatement = connection.prepareStatement(createUser)) {
+       try (PreparedStatement userStatement = connection.prepareStatement(createUser)) {
             // Insert into cse360users table
             userStatement.setString(1, email);
             userStatement.setString(2, otp);
             userStatement.setString(3, role);  // Insert the role based on the invite code
             userStatement.executeUpdate();
-
-            // Insert into invite_codes table
-            String insertInviteCode = "INSERT INTO invite_codes (invite_code, email, role) VALUES (?, ?, ?)";
-            try (PreparedStatement inviteStatement = connection.prepareStatement(insertInviteCode)) {
-                inviteStatement.setString(1, otp);  // Use OTP as invite code
-                inviteStatement.setString(2, email);
-                inviteStatement.setString(3, role);  // Insert the role based on the invite code
-                inviteStatement.executeUpdate();
-            }
+			
 
             // Print the details
             System.out.println("User invited successfully:");
@@ -283,21 +329,7 @@ class DatabaseHelper {
         }
     }
     
-    
-    public String getRoleForInviteCode(String inviteCode) throws SQLException {
-        // Query to check for the invite code in the invite_codes table
-        String query = "SELECT role FROM invite_codes WHERE invite_code = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, inviteCode);
-            ResultSet resultSet = statement.executeQuery();
-
-            // If the invite code exists, return the associated role
-            if (resultSet.next()) {
-                return resultSet.getString("role");
-            }
-        }
-        return null;  // Return null if the invite code was not found
-    }
+   
 
 
  // Method to get the user's role based on the username
@@ -315,13 +347,101 @@ class DatabaseHelper {
         return null;  // Return null if no matching user is found
     }
     
- // Method to delete the invite code from the invite_codes table after successful registration
+ // Method to delete a user by username
+    public void deleteUserByUsernameOrEmail(String username, String email) throws SQLException {
+        String deleteUserQuery;
+
+        // Determine whether to delete by username or email
+        if (username != "null" && !username.isEmpty()) {
+            deleteUserQuery = "DELETE FROM cse360users WHERE username = ?";
+        } else if (email != "null" && !email.isEmpty()) {
+            deleteUserQuery = "DELETE FROM cse360users WHERE email = ?";
+        } else {
+            System.out.println("Both username and email are null or empty. No deletion performed.");
+            return;
+        }
+
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteUserQuery)) {
+            pstmt.setString(1, username != "null" && !username.isEmpty() ? username : email);
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("User deleted successfully using " + (username != null && !username.isEmpty() ? "username: " + username : "email: " + email));
+            } else {
+                System.out.println("No user found with the provided identifier.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    
+
+
+ // Method to delete the invite code from the cse360users table after successful registration
     public void deleteInviteCode(String inviteCode) throws SQLException {
-        String deleteInviteCodeQuery = "DELETE FROM invite_codes WHERE invite_code = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(deleteInviteCodeQuery)) {
-            pstmt.setString(1, inviteCode);
-            pstmt.executeUpdate();
-            System.out.println("Invite code " + inviteCode + " deleted from invite_codes table.");
+        String clearOneTimePasswordQuery = "UPDATE cse360users SET oneTimePassword = NULL WHERE oneTimePassword = ?";
+        
+        try (PreparedStatement updateStmt = connection.prepareStatement(clearOneTimePasswordQuery)) {
+            updateStmt.setString(1, inviteCode);
+            int rowsAffected = updateStmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("oneTimePassword cleared successfully for the provided invite code.");
+            } else {
+                System.out.println("No row found with the provided invite code.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    
+    public void deleteOneTimePassword(String inviteCode) throws SQLException {
+        String deleteOneTimePasswordQuery = "DELETE FROM cse360users WHERE oneTimePassword = ?";
+        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteOneTimePasswordQuery)) {
+            deleteStmt.setString(1, inviteCode);
+            int rowsAffected = deleteStmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("One Time Password row deleted successfully.");
+            } else {
+                System.out.println("No row found with the provided invite code.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // Additional method to delete both invite code and user
+    public void registerUserWithInviteCode(String username, String password, String inviteCode) throws SQLException {
+        String fetchInviteCodeQuery = "SELECT email, role FROM cse360users WHERE oneTimePassword = ?";
+        
+        try (PreparedStatement fetchStmt = connection.prepareStatement(fetchInviteCodeQuery)) {
+            
+            // Step 1: Retrieve email and role based on invite code
+            fetchStmt.setString(1, inviteCode);
+            ResultSet resultSet = fetchStmt.executeQuery();
+
+            if (resultSet.next()) {
+                String email = resultSet.getString("email");
+                String role = resultSet.getString("role");
+
+                // Step 1: Perform any necessary one-time password deletion
+                deleteOneTimePassword(inviteCode);
+
+                // Step 2: Register or update the user with the retrieved email and role
+                registerWithEmail(username, password, email, role);
+
+                // Step 3: Delete the invite code row after registration
+                deleteInviteCode(inviteCode);
+                System.out.println("User registered or updated, and invite code deleted successfully.");
+                
+            } else {
+                System.out.println("Invite code not found.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

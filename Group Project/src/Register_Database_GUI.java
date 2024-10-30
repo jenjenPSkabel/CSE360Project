@@ -84,14 +84,19 @@ public class Register_Database_GUI extends Application {
                 if (dbHelper.doesUserExist(username)) {
                     System.out.println("User already exists.");
                 } else {
-                    // Register the user
-                    dbHelper.register(username, password, role);
-                    System.out.println("User registered successfully as a " + role + "!");
                     
                     // Delete the invite code from the invite_codes table
+                	//How normal PEOPLE ARE GOING TO BE REGISTERED
                     if (!isFirstUser) {
-                        dbHelper.deleteInviteCode(inviteCode);
+                        dbHelper.registerUserWithInviteCode(username, password, inviteCode);  // edit both user and delete invite code
                     }
+                    else{
+                        // Register the user
+                        dbHelper.register(username, password, role);
+                     
+                    }
+                    System.out.println("User registered successfully as a " + role + "!");
+
                     
                     primaryStage.close();
                     showSuccessPopup(role);  // Show success popup
