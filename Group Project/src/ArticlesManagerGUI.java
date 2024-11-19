@@ -134,8 +134,8 @@ public class ArticlesManagerGUI extends Application {
 
     // Helper method to check if an article contains any of the keywords
     private boolean containsAnyKeyword(Articles article, String[] keywords) {
-        String content = (article.getTitle() + " " + article.getHeader() + " " +
-                article.getAuthors() + " " + article.getShortDescription() + " " + article.getKeywords())
+        String content = (article.getTitle() + " " +
+                article.getAuthors() + " " + article.getShortDescription())
                 .toLowerCase();
 
         for (String keyword : keywords) {
