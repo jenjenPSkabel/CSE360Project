@@ -553,6 +553,19 @@ class DatabaseHelper {
     private String generateOneTimeReset() {
         return String.valueOf(100000 + (int) (Math.random() * 900000));  // Example 6-digit OTP generation
     }
+    
+    public String getUserEmail(String username) throws SQLException {
+        String query = "SELECT email FROM cse360users WHERE username = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("email");  // Return the email if found
+                }
+            }
+        }
+        return null;  // Return null if no email is found
+    }
 	
 
 }

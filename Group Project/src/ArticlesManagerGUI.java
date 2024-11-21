@@ -74,9 +74,7 @@ public class ArticlesManagerGUI extends Application {
         Button moveToTopButton = new Button("Search");
         moveToTopButton.setOnAction(e -> filterArticlesByKeywords(searchField.getText()));
 
-        // Layout for search bar and buttons
-        HBox searchBox = new HBox(10, new Label("Search:"), searchField, moveToTopButton);
-        searchBox.setAlignment(Pos.CENTER);
+        
 
         // Article management buttons
         Button addArticleButton = new Button("Add Article");
@@ -85,7 +83,12 @@ public class ArticlesManagerGUI extends Application {
         Button deleteArticleButton = new Button("Delete Article");
         Button backupButton = new Button("Backup Articles");
         Button restoreButton = new Button("Restore Articles");
+        Button createGroupButton = new Button("Create Group");
+        createGroupButton.setOnAction(e -> showCreateGroupDialog());
         
+        // Layout for search bar and buttons
+        HBox searchBox = new HBox(10, new Label("Search:"), searchField, moveToTopButton,createGroupButton);
+        searchBox.setAlignment(Pos.CENTER);
 
         // Set button actions
         addArticleButton.setOnAction(e -> showAddArticleDialog());
@@ -134,6 +137,7 @@ public class ArticlesManagerGUI extends Application {
         stage.setScene(scene);
         stage.show();
     }
+    
 
     // Method to filter and order articles based on search keywords
  // Method to filter and order articles based on search keywords
@@ -247,6 +251,13 @@ public class ArticlesManagerGUI extends Application {
         contentLevelComboBox.setPromptText("Select the Content Level");
         contentLevelComboBox.setValue("Uncategorized");
         
+        ComboBox<String> encryptionComboBox = new ComboBox<>();
+        encryptionComboBox.getItems().addAll("No", "Yes");
+        encryptionComboBox.setValue("No"); // Default value
+        
+        
+        
+        
         grid.add(new Label("Group:"), 0, 0);
         grid.add(groupComboBox, 1, 0);
         grid.add(new Label("Content Level:"), 0, 1);
@@ -267,6 +278,8 @@ public class ArticlesManagerGUI extends Application {
         grid.add(referencesField, 1, 8);
         grid.add(new Label("Other Information:"), 0, 9);
         grid.add(otherInfoField, 1, 9);
+        grid.add(new Label("Does This Article Need to Be Encrypted?"), 0, 10);
+        grid.add(encryptionComboBox, 1, 10);
 
         Button saveButton = new Button("Save");
         saveButton.setOnAction(e -> {
@@ -635,17 +648,34 @@ public class ArticlesManagerGUI extends Application {
     
     
     private List<String> getAllGroups() {
-        return new ArrayList<>(groups);
+    	List<String> allGroups = new ArrayList<>();
+
+        // Add existing groups from the `groups` list
+        allGroups.addAll(groups);
+        
+        // Add general groups
+        generalGroups.stream()
+            .map(GroupManager::getGroupName)
+            .forEach(allGroups::add);
+
+        // Add specialized groups with an asterisk
+        specializedGroups.stream()
+            .map(group -> "*" + group.getGroupName())
+            .forEach(allGroups::add);
+
+        return allGroups;
     }
 
-    private void updateGroups() {
-        groups.clear();
-        groups.addAll(articleList.stream()
-            .map(Articles::getGroup) // Get the group from each article
-            .filter(group -> group != null && !group.isEmpty()) // Exclude null or empty groups
-            .distinct() // Ensure uniqueness
-            .collect(Collectors.toList()));
-    }
+
+
+//    private void updateGroups() {
+//        groups.clear();
+//        groups.addAll(articleList.stream()
+//            .map(Articles::getGroup) // Get the group from each article
+//            .filter(group -> group != null && !group.isEmpty()) // Exclude null or empty groups
+//            .distinct() // Ensure uniqueness
+//            .collect(Collectors.toList()));
+//    }
     
     private void filterArticlesByGroupAndLevel(String group, String contentLevel) {
         
@@ -673,8 +703,163 @@ public class ArticlesManagerGUI extends Application {
             System.out.println("Groups saved successfully to " + filePath);
         } catch (IOException e) {
             e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Save Failed", "Failed to save groups: " + e.getMessage());
         }
     }
+
+
+    private void showCreateGroupDialog() {
+        Stage dialog = new Stage();
+        dialog.setTitle("Create Group");
+
+        GridPane grid = new GridPane();
+        grid.setVgap(10);
+        grid.setHgap(10);
+        grid.setPadding(new Insets(10));
+
+        TextField groupNameField = new TextField();
+        groupNameField.setPromptText("Enter group name");
+
+        ComboBox<String> groupTypeComboBox = new ComboBox<>();
+        groupTypeComboBox.getItems().addAll("General", "Specialized");
+        groupTypeComboBox.setPromptText("Select group type");
+
+        Button createButton = new Button("Create");
+        createButton.setOnAction(e -> {
+            String groupName = groupNameField.getText().trim();
+            String groupType = groupTypeComboBox.getValue();
+
+            if (groupName.isEmpty() || groupType == null) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Input", "Please enter a group name and select a type.");
+                return;
+            }
+
+            if ("Specialized".equals(groupType)) {
+                // Create specialized group
+                String currentUser = "instructor_username"; // Replace with actual logic
+                GroupManager newGroup = new GroupManager(groupName, currentUser);
+                specializedGroups.add(newGroup);
+            } else {
+                // Create general group
+                GroupManager newGroup = new GroupManager(groupName, "general");
+                if (!generalGroups.stream().anyMatch(g -> g.getGroupName().equals(groupName))) {
+                    generalGroups.add(newGroup); // Avoid duplicates
+                }
+            }
+
+            updateGroups();
+            refreshGroupFilterComboBox();
+            dialog.close();
+        });
+
+        grid.add(new Label("Group Name:"), 0, 0);
+        grid.add(groupNameField, 1, 0);
+        grid.add(new Label("Group Type:"), 0, 1);
+        grid.add(groupTypeComboBox, 1, 1);
+        grid.add(createButton, 1, 2);
+
+        Scene scene = new Scene(grid, 400, 200);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+
+
+
+
+
+    
+    private void showManageUsersDialog(GroupManager group) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Manage Users: " + group.getGroupName());
+
+        ListView<String> userListView = new ListView<>();
+        userListView.setItems(FXCollections.observableArrayList(group.getUsers()));
+
+        TextField usernameField = new TextField();
+        usernameField.setPromptText("Enter username to add");
+
+        Button addUserButton = new Button("Add User");
+        addUserButton.setOnAction(e -> {
+            String username = usernameField.getText().trim();
+            if (!username.isEmpty()) {
+                group.addUser(username);
+                userListView.getItems().add(username);
+            }
+        });
+
+        Button removeUserButton = new Button("Remove User");
+        removeUserButton.setOnAction(e -> {
+            String selectedUser = userListView.getSelectionModel().getSelectedItem();
+            if (selectedUser != null) {
+                group.removeUser(selectedUser);
+                userListView.getItems().remove(selectedUser);
+            }
+        });
+
+        VBox layout = new VBox(10, new Label("Users in Group:"), userListView, usernameField, addUserButton, removeUserButton);
+        layout.setPadding(new Insets(10));
+        layout.setAlignment(Pos.CENTER);
+
+        Scene scene = new Scene(layout, 400, 300);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+    
+    private List<GroupManager> specializedGroups = new ArrayList<>();
+
+    private void updateGroups() {
+        groups.clear();
+
+        // Add groups from articles
+        groups.addAll(articleList.stream()
+            .map(Articles::getGroup) // Get the group from each article
+            .filter(group -> group != null && !group.isEmpty()) // Exclude null or empty groups
+            .distinct() // Ensure uniqueness
+            .collect(Collectors.toList()));
+
+        // Add general groups
+        generalGroups.stream()
+            .map(GroupManager::getGroupName)
+            .distinct()
+            .forEach(groups::add);
+
+        // Add specialized groups with an asterisk
+        specializedGroups.stream()
+            .map(group -> "*" + group.getGroupName())
+            .distinct()
+            .forEach(groups::add);
+
+        // Save updated groups to file
+        saveGroupsToFile("groups_backup.dat");
+
+        // Debugging output
+        System.out.println("Updated Groups: " + groups);
+    }
+
+    private List<GroupManager> generalGroups = new ArrayList<>();
+
+
+
+
+
+
+    
+    private void refreshGroupFilterComboBox() {
+        groupFilterComboBox.getItems().clear();
+        groupFilterComboBox.getItems().add("All Groups"); // Add default option
+
+        // Add groups to the dropdown
+        groups.forEach(groupFilterComboBox.getItems()::add);
+
+        groupFilterComboBox.setValue("All Groups"); // Reset to default
+    }
+
+
+
+
+
+
 
 
 

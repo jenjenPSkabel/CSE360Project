@@ -35,6 +35,7 @@ public class Login_Database_GUI extends Application {
         passwordField.setPrefWidth(100);
         Button loginButton = new Button("Login");
         Button closeButton = new Button("Close");
+        
 
         loginButton.setOnAction(e -> {
             String username = usernameField.getText();
@@ -57,7 +58,7 @@ public class Login_Database_GUI extends Application {
 
                     // Check if the profile is complete
                     if (dbHelper.isProfileComplete(username)) {
-                        currentUserEmail = username;  // Store the user's email
+                    	currentUserEmail = dbHelper.getUserEmail(username);  // Store the user's email
                         currentusername = username;
                         currentUserRole = dbHelper.getUserRole(username);
                         System.out.println("User logged in with role: " + currentUserRole);
@@ -169,4 +170,6 @@ public class Login_Database_GUI extends Application {
         alert.getButtonTypes().setAll(buttonTypeOk);
         alert.showAndWait();
     }
+    
+    
 }
