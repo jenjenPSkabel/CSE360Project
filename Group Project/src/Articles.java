@@ -14,8 +14,12 @@ public class Articles implements Serializable {
     // Core fields for each article
     
     private static final Random RANDOM = new Random();
+    
     private long id;  // 7-digit unique identifier for each article
     
+    private int tempNumber = 0;
+    private String group = "Uncategorized"; // Default group
+    private String contentLevel = "Uncategorized"; // Default content level
     private String header;  // Unique header or metadata about the article
     private char[] title;
     private char[] authors;
@@ -48,6 +52,19 @@ public class Articles implements Serializable {
     }
 
     // Setters for each field
+    
+    public void setTempNumber(int tempNumber) {
+        this.tempNumber = tempNumber;
+    }
+    
+    public void setGroup(String group) {
+        this.group = group != null ? group : "Uncategorized"; // Ensure non-null value
+    }
+    
+    public void setContentLevel(String contentLevel) {
+        this.contentLevel = contentLevel != null ? contentLevel : "Uncategorized";
+    }
+    
     public void setHeader(String header) {
         this.header = header;
     }
@@ -89,6 +106,19 @@ public class Articles implements Serializable {
 
 
     // Getters
+    
+    public int getTempNumber() {
+        return tempNumber;
+    }
+    
+    public String getGroup() {
+        return group;
+    }
+    
+    public String getContentLevel() {
+        return contentLevel;
+    }
+    
     public String getHeader() {
         return header;
     }
