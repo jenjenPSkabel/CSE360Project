@@ -11,9 +11,16 @@ import java.util.List;
 public class multiRoleHomepage extends Application {
     private String rolesString;
 
+    private final String username;
+    private final String email;
+
+
     // Constructor to accept the comma-separated roles string
-    public multiRoleHomepage(String rolesString) {
+    public multiRoleHomepage(String rolesString,String username, String email) {
         this.rolesString = rolesString;
+        this.username = username;
+        this.email = email;
+        
     }
 
     @Override
@@ -27,17 +34,17 @@ public class multiRoleHomepage extends Application {
         // Add buttons dynamically based on the roles parsed
         if (roles.contains("Admin")) {
             Button adminButton = new Button("Switch to Admin");
-            adminButton.setOnAction(e -> openAdminHomepage());
+            adminButton.setOnAction(e -> openAdminHomepage(username, email));
             vbox.getChildren().add(adminButton);
         }
         if (roles.contains("Student")) {
             Button studentButton = new Button("Switch to Student");
-            studentButton.setOnAction(e -> openStudentHomepage());
+            studentButton.setOnAction(e -> openStudentHomepage(username, email));
             vbox.getChildren().add(studentButton);
         }
         if (roles.contains("Instructor")) {
             Button instructorButton = new Button("Switch to Instructor");
-            instructorButton.setOnAction(e -> openInstructorHomepage());
+            instructorButton.setOnAction(e -> openInstructorHomepage(username, email));
             vbox.getChildren().add(instructorButton);
         }
 
@@ -52,8 +59,8 @@ public class multiRoleHomepage extends Application {
         primaryStage.show();
     }
 
-    private void openAdminHomepage() {
-        adminHomepage adminPage = new adminHomepage();
+    private void openAdminHomepage(String username, String email) {
+        adminHomepage adminPage = new adminHomepage(username, email);
         Stage adminStage = new Stage();
         try {
             adminPage.start(adminStage);
@@ -62,8 +69,8 @@ public class multiRoleHomepage extends Application {
         }
     }
 
-    private void openStudentHomepage() {
-        studentHomepage studentPage = new studentHomepage();
+    private void openStudentHomepage(String username, String email) {
+        studentHomepage studentPage = new studentHomepage(username, email);
         Stage studentStage = new Stage();
         try {
             studentPage.start(studentStage);
@@ -72,8 +79,8 @@ public class multiRoleHomepage extends Application {
         }
     }
 
-    private void openInstructorHomepage() {
-        instructorHomepage instructorPage = new instructorHomepage();
+    private void openInstructorHomepage(String username, String email) {
+        instructorHomepage instructorPage = new instructorHomepage(username, email);
         Stage instructorStage = new Stage();
         try {
             instructorPage.start(instructorStage);

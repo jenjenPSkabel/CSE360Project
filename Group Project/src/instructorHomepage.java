@@ -6,6 +6,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class instructorHomepage extends Application {
+	
+	private final String username;
+    private final String email;
+
+    public instructorHomepage(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
 
     @Override
     public void start(Stage primaryStage) {

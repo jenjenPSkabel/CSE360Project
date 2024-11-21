@@ -41,6 +41,10 @@ public class mainMenu extends Application {
                 // After login window is closed, get the user's role
                 String currentUserRole = loginGUI.getRole();
                 boolean currentUserIsMultirole = loginGUI.isMultirole();
+                
+                String username = loginGUI.getUsername();
+                String email = loginGUI.getEmail();
+                boolean isMultirole = loginGUI.isMultirole();
 
                 // Check the role and navigate accordingly
                 
@@ -49,7 +53,7 @@ public class mainMenu extends Application {
                 
                 System.out.print(currentUserIsMultirole);
                 if (currentUserIsMultirole) {
-                	multiRoleHomepage multiRoleHomepage = new multiRoleHomepage(currentUserRole);
+                	multiRoleHomepage multiRoleHomepage = new multiRoleHomepage(currentUserRole,username, email);
                     try {
                         multiRoleHomepage.start(new Stage());  // Open the Multi-Role HomePage
                     } catch (Exception ex) {
@@ -58,7 +62,7 @@ public class mainMenu extends Application {
                     System.out.println("User logged in with multi-role access.");
                 }
                 else if("Student".equals(currentUserRole)){
-                	studentHomepage studentHomepage = new studentHomepage();
+                	studentHomepage studentHomepage = new studentHomepage(username, email);
                     try {
                         studentHomepage.start(new Stage());  // Open the student HomePage
                     } catch (Exception ex) {
@@ -67,7 +71,7 @@ public class mainMenu extends Application {
                     System.out.println("User logged in with role: " + currentUserRole);
                 }
                 else if("Instructor".equals(currentUserRole)){
-                	instructorHomepage instructorHomepage = new instructorHomepage();
+                	instructorHomepage instructorHomepage = new instructorHomepage(username, email);
                     try {
                     	instructorHomepage.start(new Stage());  // Open the Instructor HomePage
                     } catch (Exception ex) {
@@ -77,7 +81,7 @@ public class mainMenu extends Application {
                 }
                
                 else if("Admin".equals(currentUserRole)) {
-                    adminHomepage adminHomePage = new adminHomepage();
+                    adminHomepage adminHomePage = new adminHomepage(username, email);
                     try {
                         adminHomePage.start(new Stage());  // Open the Admin HomePage
                     } catch (Exception ex) {

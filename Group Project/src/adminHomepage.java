@@ -1,7 +1,11 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -14,6 +18,13 @@ import javafx.scene.control.Alert.AlertType;
 public class adminHomepage extends Application {
 
     private DatabaseHelper dbHelper = new DatabaseHelper();
+    private final String username;
+    private final String email;
+
+    public adminHomepage(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -29,10 +40,13 @@ public class adminHomepage extends Application {
         createInviteButton.setOnAction(e -> openCreateInviteCodeWindow());
         showUsersButton.setOnAction(e -> openUserListWindow());
         articlesManagerButton.setOnAction(e -> openArticlesManagerWindow()); // Open Articles Manager window
+        Button viewMessagesButton = new Button("View Messages");
+        viewMessagesButton.setOnAction(e -> showAdminMessageTable());
+
         logoutButton.setOnAction(e -> primaryStage.close());
 
         // Layout for the Admin home page
-        VBox vbox = new VBox(20, createInviteButton, showUsersButton, articlesManagerButton, logoutButton);
+        VBox vbox = new VBox(20, createInviteButton, showUsersButton, articlesManagerButton, viewMessagesButton, logoutButton);
         vbox.setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(vbox, 300, 250);
@@ -124,6 +138,64 @@ public class adminHomepage extends Application {
             ex.printStackTrace();
         }
     }
+    
+    private void showAdminMessageTable() {
+        Stage adminStage = new Stage();
+        adminStage.setTitle("Help Messages");
+
+        TableView<HelpMessage> messageTable = new TableView<>();
+        List<HelpMessage> messages = HelpMessageManager.loadMessagesSafely("help_messages.dat");
+        ObservableList<HelpMessage> messageList = FXCollections.observableArrayList(messages);
+
+        // Define table columns
+        TableColumn<HelpMessage, String> usernameCol = new TableColumn<>("Username");
+        usernameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getUsername()));
+
+        TableColumn<HelpMessage, String> emailCol = new TableColumn<>("Email");
+        emailCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getEmail()));
+
+        TableColumn<HelpMessage, String> typeCol = new TableColumn<>("Type");
+        typeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMessageType()));
+
+        TableColumn<HelpMessage, String> headerCol = new TableColumn<>("Header");
+        headerCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMessageHeader()));
+
+        TableColumn<HelpMessage, String> bodyCol = new TableColumn<>("Body");
+        bodyCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMessageBody()));
+
+        messageTable.getColumns().addAll(usernameCol, emailCol, typeCol, headerCol, bodyCol);
+        messageTable.setItems(messageList);
+        messageTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        // Mark as complete button
+        Button markCompleteButton = new Button("Mark as Complete");
+        markCompleteButton.setOnAction(e -> {
+            HelpMessage selectedMessage = messageTable.getSelectionModel().getSelectedItem();
+            if (selectedMessage != null) {
+                messageList.remove(selectedMessage);
+
+                // Save the updated list to the file
+                try {
+                    HelpMessageManager.saveMessagesToFile("help_messages.dat", new ArrayList<>(messageList));
+                    showAlert(Alert.AlertType.INFORMATION, "Message Completed", "The message has been marked as complete.");
+                } catch (IOException ex) {
+                    showAlert(Alert.AlertType.ERROR, "Save Failed", "Failed to save updated messages.");
+                }
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a message to mark as complete.");
+            }
+        });
+
+        VBox layout = new VBox(10, messageTable, markCompleteButton);
+        layout.setPadding(new Insets(10));
+        layout.setAlignment(Pos.CENTER);
+
+        Scene scene = new Scene(layout, 800, 600);
+        adminStage.setScene(scene);
+        adminStage.show();
+    }
+
+
 
     public static void main(String[] args) {
         launch(args);

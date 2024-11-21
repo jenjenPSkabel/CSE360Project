@@ -13,6 +13,15 @@ public class Login_Database_GUI extends Application {
     private String currentUserEmail;  // To store the logged-in user's email
     private String currentusername;
     private boolean usedResetPassword = false;
+ // Method to retrieve the email after login
+    public String getEmail() {
+        return currentUserEmail;
+    }
+
+    // Method to retrieve the username after login
+    public String getUsername() {
+        return currentusername;
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
