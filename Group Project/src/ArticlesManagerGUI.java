@@ -26,8 +26,16 @@ public class ArticlesManagerGUI extends Application {
     private TableColumn<Articles, Number> numberCol;
     private Label contentLevelCountLabel = new Label();
     private Button viewByTempNumberButton = new Button("View by Temp Number");
+private List<String> userWhitelist = List.of("admin", "stu");
+    
+    
+    private final String username;
+    private final String email;
 
-
+    public ArticlesManagerGUI(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
     @Override
     public void start(Stage stage) {
         stage.setTitle("Articles Manager");
@@ -212,7 +220,7 @@ public class ArticlesManagerGUI extends Application {
 
 
 
-    private void showAddArticleDialog() {
+  private void showAddArticleDialog() {
         Stage dialog = new Stage();
         dialog.setTitle("Add Article");
 
@@ -255,9 +263,6 @@ public class ArticlesManagerGUI extends Application {
         encryptionComboBox.getItems().addAll("No", "Yes");
         encryptionComboBox.setValue("No"); // Default value
         
-        
-        
-        
         grid.add(new Label("Group:"), 0, 0);
         grid.add(groupComboBox, 1, 0);
         grid.add(new Label("Content Level:"), 0, 1);
@@ -284,6 +289,8 @@ public class ArticlesManagerGUI extends Application {
         Button saveButton = new Button("Save");
         saveButton.setOnAction(e -> {
             
+        	
+        	
         	String selectedGroup = groupComboBox.getValue();
         	String selectedContentLevel = contentLevelComboBox.getValue();
         	
@@ -303,6 +310,15 @@ public class ArticlesManagerGUI extends Application {
             article.setBody(bodyField.getText());
             article.setReferences(referencesField.getText());
             article.setOtherInfo(otherInfoField.getText());
+            
+            boolean needsEncryption = "Yes".equals(encryptionComboBox.getValue());
+            article.setNeedsEncryption(needsEncryption);
+            if (needsEncryption) {
+                // Generate the encryption key dynamically based on the header
+                String derivedKey = article.generateKeyFromBase(article.getHeader());
+                article.setEncryptedBody(bodyField.getText(), derivedKey);
+            }
+
 
             articleList.add(article);
             saveArticles();
@@ -372,6 +388,10 @@ public class ArticlesManagerGUI extends Application {
         contentLevelComboBox.setPromptText("Select the Content Level");
         contentLevelComboBox.setValue(selectedArticle.getContentLevel());
         
+        ComboBox<String> encryptionComboBox = new ComboBox<>();
+        encryptionComboBox.getItems().addAll("No", "Yes");
+        encryptionComboBox.setValue("No"); // Default value
+        
         grid.add(new Label("Group:"), 0, 0);
         grid.add(groupComboBox, 1, 0);
         grid.add(new Label("Content Level:"), 0, 1);
@@ -392,6 +412,8 @@ public class ArticlesManagerGUI extends Application {
         grid.add(referencesField, 1, 8);
         grid.add(new Label("Other Information:"), 0, 9);
         grid.add(otherInfoField, 1, 9);
+        grid.add(new Label("Does This Article Need to Be Encrypted?"), 0, 10);
+        grid.add(encryptionComboBox, 1, 10);
 
         Button saveButton = new Button("Save Changes");
         saveButton.setOnAction(e -> {
@@ -412,6 +434,16 @@ public class ArticlesManagerGUI extends Application {
             selectedArticle.setKeywords(keywordsField.getText());
             selectedArticle.setBody(bodyField.getText());
             selectedArticle.setOtherInfo(otherInfoField.getText());
+            
+            boolean needsEncryption = "Yes".equals(encryptionComboBox.getValue());
+            selectedArticle.setNeedsEncryption(needsEncryption);
+            if (needsEncryption) {
+                // Generate the encryption key dynamically based on the header
+                String derivedKey = selectedArticle.generateKeyFromBase(selectedArticle.getHeader());
+                selectedArticle.setEncryptedBody(bodyField.getText(), derivedKey);
+            }
+
+
 
             articleTable.refresh();
             updateGroups();
@@ -437,6 +469,32 @@ public class ArticlesManagerGUI extends Application {
             return;
         }
 
+        // Debug: Check if user is in whitelist
+        System.out.println("Whitelist: " + userWhitelist);
+        System.out.println("Current user: " + username);
+
+        
+     	String key = selectedArticle.generateKeyFromBase(selectedArticle.getHeader());
+    	String bodyContent = selectedArticle.getBodyForUser(username, userWhitelist, key);
+
+        // Debug: Verify decrypted content
+        try {
+            EncryptionHelper helper = new EncryptionHelper();
+
+            String decrypted = new String(
+                helper.safeDecrypt(
+                    selectedArticle.getEncryptedBody(key).getBytes(StandardCharsets.UTF_8),
+                    key.getBytes(StandardCharsets.UTF_8)
+                ),
+                StandardCharsets.UTF_8
+            );
+            System.out.println("Decrypted body (independent check): " + decrypted); // Debug
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error during independent decryption check.");
+        }
+
+        // Display article content
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("View Article");
         alert.setHeaderText("ID: " + selectedArticle.getId() + "\n" + selectedArticle.getHeader());
@@ -447,12 +505,14 @@ public class ArticlesManagerGUI extends Application {
             "\nAuthor(s): " + selectedArticle.getAuthors() +
             "\n\nShort Description/Abstract:\n" + selectedArticle.getShortDescription() +
             "\n\nKeywords:\n" + selectedArticle.getKeywords() +
-            "\n\nBody:\n" + selectedArticle.getBody() +
+            "\n\nBody:\n" + bodyContent +
             "\n\nReferences:\n" + selectedArticle.getReferences() +
             "\nOther Information:\n" + selectedArticle.getOtherInfo()
         );
         alert.showAndWait();
     }
+
+
     
     private void showViewByTempNumberDialog() {
         Stage dialog = new Stage();
@@ -482,6 +542,29 @@ public class ArticlesManagerGUI extends Application {
                 if (article == null) {
                     showAlert(Alert.AlertType.WARNING, "Invalid Number", "No article found with the given temporary number.");
                 } else {
+                	
+                	String key = article.generateKeyFromBase(article.getHeader());
+                	String bodyContent = article.getBodyForUser(username, userWhitelist, key);
+
+
+
+                    // Debug: Verify decrypted content
+                    try {
+                        EncryptionHelper helper = new EncryptionHelper();
+                        String decrypted = new String(
+                            helper.safeDecrypt(
+                                article.getEncryptedBody(key).getBytes(StandardCharsets.UTF_8),
+                                key.getBytes(StandardCharsets.UTF_8)
+                            ),
+                            StandardCharsets.UTF_8
+                        );
+                        System.out.println("Decrypted body (independent check): " + decrypted); // Debug
+                    } catch (Exception a) {
+                        a.printStackTrace();
+                        System.out.println("Error during independent decryption check.");
+                    }
+
+                    
                 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("View Article");
                     alert.setHeaderText("ID: " + article.getId() + "\n" + article.getHeader());
